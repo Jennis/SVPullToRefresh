@@ -24,6 +24,10 @@ typedef NSUInteger SVPullToRefreshPosition;
 
 - (void)addPullToRefreshWithActionHandler:(void (^)(void))actionHandler;
 - (void)addPullToRefreshWithActionHandler:(void (^)(void))actionHandler position:(SVPullToRefreshPosition)position;
+
+- (void)addPullToRefreshWithActionHandler:(void (^)(void))actionHandler statetext:(NSString*)statetext;
+- (void)addPullToRefreshWithActionHandler:(void (^)(void))actionHandler position:(SVPullToRefreshPosition)position statetext:(NSString *)statetext;
+
 - (void)triggerPullToRefresh;
 
 @property (nonatomic, strong, readonly) SVPullToRefreshView *pullToRefreshView;
@@ -55,6 +59,7 @@ typedef NSUInteger SVPullToRefreshState;
 - (void)setTitle:(NSString *)title forState:(SVPullToRefreshState)state;
 - (void)setSubtitle:(NSString *)subtitle forState:(SVPullToRefreshState)state;
 - (void)setCustomView:(UIView *)view forState:(SVPullToRefreshState)state;
+- (id)initWithFrame:(CGRect)frame statetext:(NSString*)statetext;
 
 - (void)startAnimating;
 - (void)stopAnimating;

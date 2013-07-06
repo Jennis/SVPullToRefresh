@@ -27,7 +27,7 @@
     // setup pull-to-refresh
     [self.tableView addPullToRefreshWithActionHandler:^{
         [weakSelf insertRowAtTop];
-    }];
+    } statetext:@"filter"];
         
     // setup infinite scrolling
     [self.tableView addInfiniteScrollingWithActionHandler:^{

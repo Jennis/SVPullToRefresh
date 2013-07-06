@@ -33,6 +33,7 @@ static CGFloat const SVPullToRefreshViewHeight = 60;
 @property (nonatomic, strong, readwrite) UILabel *subtitleLabel;
 @property (nonatomic, readwrite) SVPullToRefreshState state;
 @property (nonatomic, readwrite) SVPullToRefreshPosition position;
+@property (nonatomic, readwrite) NSString *statetext;
 
 @property (nonatomic, strong) NSMutableArray *titles;
 @property (nonatomic, strong) NSMutableArray *subtitles;
@@ -90,11 +91,43 @@ static char UIScrollViewPullToRefreshView;
         self.pullToRefreshView = view;
         self.showsPullToRefresh = YES;
     }
-    
 }
+
+- (void)addPullToRefreshWithActionHandler:(void (^)(void))actionHandler position:(SVPullToRefreshPosition)position statetext:(NSString *)statetext{
+    
+    if(!self.pullToRefreshView) {
+        CGFloat yOrigin;
+        switch (position) {
+            case SVPullToRefreshPositionTop:
+                yOrigin = -SVPullToRefreshViewHeight;
+                break;
+            case SVPullToRefreshPositionBottom:
+                yOrigin = self.contentSize.height;
+                break;
+            default:
+                return;
+        }
+        SVPullToRefreshView *view = [[SVPullToRefreshView alloc] initWithFrame:CGRectMake(0, yOrigin, self.bounds.size.width, SVPullToRefreshViewHeight) statetext:statetext];
+        view.pullToRefreshActionHandler = actionHandler;
+        view.scrollView = self;
+        [self addSubview:view];
+        
+        view.originalTopInset = self.contentInset.top;
+        view.originalBottomInset = self.contentInset.bottom;
+        view.position = position;
+        view.statetext = statetext;
+        self.pullToRefreshView = view;
+        self.showsPullToRefresh = YES;
+    }
+}
+
 
 - (void)addPullToRefreshWithActionHandler:(void (^)(void))actionHandler {
     [self addPullToRefreshWithActionHandler:actionHandler position:SVPullToRefreshPositionTop];
+}
+
+- (void)addPullToRefreshWithActionHandler:(void (^)(void))actionHandler statetext:(NSString*)statetext {
+    [self addPullToRefreshWithActionHandler:actionHandler position:SVPullToRefreshPositionTop statetext:statetext];
 }
 
 - (void)triggerPullToRefresh {
@@ -179,10 +212,57 @@ static char UIScrollViewPullToRefreshView;
         self.state = SVPullToRefreshStateStopped;
         self.showsDateLabel = NO;
         
-        self.titles = [NSMutableArray arrayWithObjects:NSLocalizedString(@"Pull to refresh...",),
-                             NSLocalizedString(@"Release to refresh...",),
+        NSString *pulltoStatusText = nil, *releasetoStatusText = nil;
+        if(self.statetext && self.statetext.length>0){
+            NSString *pulltoStatusTextCombined = [NSString stringWithFormat:@"Pull to %@",self.statetext];
+            NSString *releasetoStatusTextCombined = [NSString stringWithFormat:@"Release to %@",self.statetext];
+            
+            pulltoStatusText = NSLocalizedString(pulltoStatusTextCombined,);
+            releasetoStatusText = NSLocalizedString(releasetoStatusTextCombined,);
+        }
+        else {
+            pulltoStatusText = NSLocalizedString(@"Pull to refresh...",);
+            releasetoStatusText = NSLocalizedString(@"Release to refresh...",);
+        }
+        self.titles = [NSMutableArray arrayWithObjects:pulltoStatusText,
+                             releasetoStatusText,
                              NSLocalizedString(@"Loading...",),
                                 nil];
+        
+        self.subtitles = [NSMutableArray arrayWithObjects:@"", @"", @"", @"", nil];
+        self.viewForState = [NSMutableArray arrayWithObjects:@"", @"", @"", @"", nil];
+        self.wasTriggeredByUser = YES;
+    }
+    
+    return self;
+}
+
+- (id)initWithFrame:(CGRect)frame statetext:(NSString*)statetext {
+    if(self = [super initWithFrame:frame]) {
+        self.statetext = statetext;
+        // default styling values
+        self.activityIndicatorViewStyle = UIActivityIndicatorViewStyleGray;
+        self.textColor = [UIColor darkGrayColor];
+        self.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+        self.state = SVPullToRefreshStateStopped;
+        self.showsDateLabel = NO;
+        
+        NSString *pulltoStatusText = nil, *releasetoStatusText = nil;
+        if(self.statetext && self.statetext.length>0){
+            NSString *pulltoStatusTextCombined = [NSString stringWithFormat:@"Pull to %@",self.statetext];
+            NSString *releasetoStatusTextCombined = [NSString stringWithFormat:@"Release to %@",self.statetext];
+            
+            pulltoStatusText = NSLocalizedString(pulltoStatusTextCombined,);
+            releasetoStatusText = NSLocalizedString(releasetoStatusTextCombined,);
+        }
+        else {
+            pulltoStatusText = NSLocalizedString(@"Pull to refresh...",);
+            releasetoStatusText = NSLocalizedString(@"Release to refresh...",);
+        }
+        self.titles = [NSMutableArray arrayWithObjects:pulltoStatusText,
+                       releasetoStatusText,
+                       NSLocalizedString(@"Loading...",),
+                       nil];
         
         self.subtitles = [NSMutableArray arrayWithObjects:@"", @"", @"", @"", nil];
         self.viewForState = [NSMutableArray arrayWithObjects:@"", @"", @"", @"", nil];
